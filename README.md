@@ -11,7 +11,7 @@ Frontend templates (HTML/CSS/JS) for user interaction
 
 Here’s your perfect README.md (GitHub-ready) 👇
 
-#🧬 Breast Cancer Diagnostic Web App
+# 🧬 Breast Cancer Diagnostic Web App
 An intelligent web-based diagnostic tool that uses machine learning to classify breast cancer images as benign or malignant.
 Built with Flask, LightGBM, and OpenCV, this app provides an intuitive interface for medical image analysis, feature extraction, and model-based prediction.
 Perfect — your `app.py` confirms this is a **Flask-based Breast Cancer Diagnostic Web App** that:
