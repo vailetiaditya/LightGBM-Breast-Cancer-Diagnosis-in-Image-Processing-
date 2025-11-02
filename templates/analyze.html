@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block title %}Analyze - LightGBM Breast Cancer Diagnosis{% endblock %}
+
+{% block content %}
+<section class="analyze-section">
+    <h1>Upload Scan for Analysis</h1>
+    <p class="description">Upload a breast cancer scan image to analyze for potential cancer cells, size estimation, and severity assessment.</p>
+    
+    <div class="upload-container">
+        <form action="{{ url_for('analyze') }}" method="post" enctype="multipart/form-data" id="upload-form">
+            <div class="file-upload">
+                <div class="file-upload-area" id="drop-area">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Drag & Drop your scan image here</p>
+                    <p>or</p>
+                    <label for="file-input" class="file-label">Browse Files</label>
+                    <input type="file" id="file-input" name="file" accept="image/*" required>
+                </div>
+                <div class="file-preview" id="file-preview">
+                    <img id="preview-image" src="#" alt="Preview">
+                    <span id="file-name"></span>
+                    <button type="button" id="remove-file"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            
+            <div class="upload-options">
+                <div class="option">
+                    <input type="checkbox" id="enhance" name="enhance" checked>
+                    <label for="enhance">Apply image enhancement</label>
+                </div>
+                <div class="option">
+                    <input type="checkbox" id="detailed" name="detailed" checked>
+                    <label for="detailed">Generate detailed report</label>
+                </div>
+            </div>
+            
+            <div class="submit-area">
+                <button type="submit" class="btn primary-btn" id="analyze-btn">
+                    <i class="fas fa-search"></i> Analyze Image
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>Analyzing your scan...</p>
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+        <p class="loading-details">Please wait while our LightGBM model processes your image</p>
+    </div>
+    
+    {% if error %}
+    <div class="error-message" style="background-color: #ffebee; border-left: 4px solid #f44336; padding: 1rem; margin: 1rem 0; border-radius: var(--border-radius);">
+        <h4 style="color: #d32f2f; margin-bottom: 0.5rem;"><i class="fas fa-exclamation-circle"></i> Error</h4>
+        <p style="margin: 0;">{{ error }}</p>
+    </div>
+    {% endif %}
+    
+    <div class="guidelines">
+        <h3>Guidelines for Best Results</h3>
+        <ul>
+            <li><i class="fas fa-check-circle"></i> Upload high-resolution images for better accuracy</li>
+            <li><i class="fas fa-check-circle"></i> Ensure the scan captures the complete area of interest</li>
+            <li><i class="fas fa-check-circle"></i> Supported formats: JPEG, PNG, TIFF, and DICOM</li>
+            <li><i class="fas fa-check-circle"></i> Maximum file size: 16MB</li>
+        </ul>
+        
+       
+    </div>
+    
+    <div class="disclaimer-section" style="margin-top: 3rem; background-color: #f8f9fa; padding: 1.5rem; border-radius: var(--border-radius); text-align: center;">
+        <h3 style="margin-bottom: 1rem;">Important Disclaimer</h3>
+        <p>This tool is intended as a supportive diagnostic aid and not a replacement for professional medical diagnosis. Always consult with healthcare professionals for proper diagnosis and treatment.</p>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('file-input');
+        const filePreview = document.getElementById('file-preview');
+        const previewImage = document.getElementById('preview-image');
+        const fileName = document.getElementById('file-name');
+        const removeFile = document.getElementById('remove-file');
+        const uploadForm = document.getElementById('upload-form');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const progress = document.getElementById('progress');
+        
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        // Highlight drop area when item is dragged over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropArea.classList.add('highlight');
+        }
+        
+        function unhighlight() {
+            dropArea.classList.remove('highlight');
+        }
+        
+        // Handle dropped files
+        dropArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+        
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+        
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('image/')) {
+                    displayPreview(file);
+                } else {
+                    alert('Please upload an image file.');
+                }
+            }
+        }
+        
+        function displayPreview(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                fileName.textContent = file.name;
+                dropArea.style.display = 'none';
+                filePreview.style.display = 'flex';
+            }
+            reader.readAsDataURL(file);
+        }
+        
+        removeFile.addEventListener('click', function() {
+            fileInput.value = '';
+            previewImage.src = '#';
+            fileName.textContent = '';
+            dropArea.style.display = 'flex';
+            filePreview.style.display = 'none';
+        });
+        
+        uploadForm.addEventListener('submit', function(e) {
+            if (fileInput.files.length > 0) {
+                loadingOverlay.style.display = 'flex';
+                simulateProgress();
+            }
+        });
+        
+        function simulateProgress() {
+            let width = 0;
+            const interval = setInterval(function() {
+                if (width >= 90) {
+                    clearInterval(interval);
+                } else {
+                    width += Math.random() * 10;
+                    progress.style.width = width + '%';
+                }
+            }, 500);
+        }
+        
+        // Add animation to the form elements
+        gsap.from(".analyze-section h1", {opacity: 0, y: -50, duration: 1});
+        gsap.from(".description", {opacity: 0, y: -30, duration: 1, delay: 0.3});
+        gsap.from(".file-upload", {opacity: 0, y: 30, duration: 1, delay: 0.5});
+        gsap.from(".upload-options", {opacity: 0, y: 20, duration: 1, delay: 0.7});
+        gsap.from(".submit-area", {opacity: 0, y: 20, duration: 1, delay: 0.9});
+        gsap.from(".guidelines", {opacity: 0, y: 30, duration: 1, delay: 1.1});
+    });
+    
+    // Function to use sample images
+    function useSampleImage(sampleName) {
+        // In a real application, you would download or copy the sample image
+        // For this example, we'll simulate loading a sample image
+        const previewImage = document.getElementById('preview-image');
+        const fileName = document.getElementById('file-name');
+        const dropArea = document.getElementById('drop-area');
+        const filePreview = document.getElementById('file-preview');
+        
+        // Set the preview image source to the sample image
+        previewImage.src = `{{ url_for('static', filename='images/') }}${sampleName}`;
+        previewImage.onerror = function() {
+            this.src = `https://via.placeholder.com/300x200?text=Sample+Image`;
+        };
+        
+        fileName.textContent = sampleName;
+        dropArea.style.display = 'none';
+        filePreview.style.display = 'flex';
+        
+        // Create a file object to attach to the file input
+        // This is a bit tricky and might not work in all browsers
+        // In a real application, you would handle this server-side
+        fetch(`{{ url_for('static', filename='images/') }}${sampleName}`)
+            .then(response => response.blob())
+            .then(blob => {
+                const file = new File([blob], sampleName, { type: 'image/jpeg' });
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                document.getElementById('file-input').files = dataTransfer.files;
+            })
+            .catch(error => {
+                console.error('Error loading sample image:', error);
+                alert('Could not load sample image. Please try uploading your own image.');
+            });
+    }
+</script>
+{% endblock %}

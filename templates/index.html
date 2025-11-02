@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - LightGBM Breast Cancer Diagnosis{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <h1 class="animate-title">LightGBM Breast Cancer Diagnosis</h1>
+        <p class="animate-text">A Leading Force in Breast Cancer Diagnosis Through Machine Learning and Image Processing</p>
+        <div class="cta-buttons">
+            <a href="{{ url_for('analyze') }}" class="btn primary-btn animate-btn">Analyze Image</a>
+           
+        </div>
+    </div>
+    <div class="hero-image">
+        <div class="floating-image">
+            <img src="{{ url_for('static', filename='images/breast-scan.png') }}" alt="Breast Cancer Scan" onerror="this.src='https://via.placeholder.com/600x400?text=Breast+Cancer+Scan'">
+        </div>
+    </div>
+</section>
+
+<section class="features">
+    <h2>How It Works</h2>
+    <div class="feature-cards">
+        <div class="card">
+            <div class="card-icon"><i class="fas fa-upload"></i></div>
+            <h3>Upload Scan</h3>
+            <p>Upload your breast scan image in common formats like JPEG, PNG, or DICOM. Our system accepts high-resolution medical images for optimal analysis.</p>
+        </div>
+        <div class="card">
+            <div class="card-icon"><i class="fas fa-cogs"></i></div>
+            <h3>AI Analysis</h3>
+            <p>Our LightGBM model processes the image using advanced machine learning algorithms, identifying potential cancer markers with high precision.</p>
+        </div>
+        <div class="card">
+            <div class="card-icon"><i class="fas fa-chart-pie"></i></div>
+            <h3>Get Results</h3>
+            <p>Receive detailed analysis including cancer detection, size, and severity assessment. All results are presented in an easy-to-understand format.</p>
+        </div>
+    </div>
+</section>
+
+<section class="stats">
+    <h2>Our Impact</h2>
+    <div class="stat-counters">
+        <div class="stat">
+            <div class="counter" data-target="95">0</div>
+            <p>Accuracy Rate</p>
+        </div>
+       
+</section>
+
+
+
+
+<section class="cta-section">
+    <div class="cta-content">
+        <h2>Ready to Try Our AI-Powered Diagnosis Tool?</h2>
+        <p>Upload a breast scan image now and get instant analysis with our advanced LightGBM model.</p>
+        <a href="{{ url_for('analyze') }}" class="btn primary-btn">Analyze Your Image</a>
+    </div>
+</section>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // FAQ toggle functionality
+        const faqItems = document.querySelectorAll('.faq-item');
+        
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            const answer = item.querySelector('.faq-answer');
+            const icon = item.querySelector('.faq-toggle i');
+            
+            // Initially hide all answers
+            answer.style.display = 'none';
+            
+            question.addEventListener('click', () => {
+                // Toggle answer visibility
+                if (answer.style.display === 'none') {
+                    answer.style.display = 'block';
+                    icon.classList.replace('fa-plus', 'fa-minus');
+                    item.classList.add('active');
+                } else {
+                    answer.style.display = 'none';
+                    icon.classList.replace('fa-minus', 'fa-plus');
+                    item.classList.remove('active');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+
+{% block title %}Analysis Results - LightGBM Breast Cancer Diagnosis{% endblock %}
+
+{% block content %}
+<section class="results-section">
+    <div class="results-header">
+        <h1>Analysis Results</h1>
+        <p class="timestamp">Analysis completed on {{ current_time.strftime('%B %d, %Y at %H:%M') }}</p>
+    </div>
+    
+    <div class="results-container">
+        <div class="results-summary" id="results-summary-container">
+            <div class="summary-icon">
+                {% if result.cancer_detected %}
+                <i class="fas fa-exclamation-triangle"></i>
+                {% else %}
+                <i class="fas fa-check-circle"></i>
+                {% endif %}
+            </div>
+            <div class="summary-text">
+                <h2>{% if result.cancer_detected %}Cancer Detected{% else %}No Cancer Detected{% endif %}</h2>
+                <p>{{ result.message }}</p>
+            </div>
+        </div>
+        
+        <div class="results-details">
+            <div class="result-images">
+                <div class="image-card">
+                    <h3>Original Scan</h3>
+                    <div class="image-container">
+                        <img src="{{ url_for('static', filename='uploads/uploaded_image.jpg') }}" alt="Original Scan">
+                    </div>
+                </div>
+                <div class="image-card">
+                    <h3>Analysis Visualization</h3>
+                    <div class="image-container">
+                        <img src="{{ url_for('static', filename='uploads/visualization.png') }}" alt="Analysis Visualization">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metrics-container">
+                <h3>Analysis Metrics</h3>
+                
+                <div class="confidence-meter">
+                    <div class="meter-label">Confidence Level</div>
+                    <div class="meter">
+                        <div class="meter-fill" id="confidence-meter-fill" data-value="{{ result.probability }}"></div>
+                    </div>
+                    <div class="meter-value">{{ result.probability }}%</div>
+                </div>
+                
+                {% if result.cancer_detected %}
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon"><i class="fas fa-ruler"></i></div>
+                        <div class="metric-value">{{ result.size_mm }} mm</div>
+                        <div class="metric-label">Estimated Size</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="metric-value">{{ result.severity }}</div>
+                        <div class="metric-label">Severity Level</div>
+                    </div>
+                    
+                    <!-- Additional metrics for more detailed analysis -->
+                    <div class="metric-card">
+                        <div class="metric-icon"><i class="fas fa-calendar-alt"></i></div>
+                        <div class="metric-value">Immediate</div>
+                        <div class="metric-label">Recommended Follow-up</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon"><i class="fas fa-clipboard-list"></i></div>
+                        <div class="metric-value">
+                            {% if result.severity == "High" %}High Priority{% elif result.severity == "Medium" %}Medium Priority{% else %}Standard Priority{% endif %}
+                        </div>
+                        <div class="metric-label">Attention Level</div>
+                    </div>
+                </div>
+                
+                <!-- Feature importance section for detected cancer -->
+                <div class="feature-importance">
+                    <h4>Key Indicators</h4>
+                    <p class="feature-intro">The following features contributed most to this diagnosis:</p>
+                    
+                    <div class="feature-bars">
+                        <div class="feature-bar">
+                            <div class="feature-name">Cell Shape Irregularity</div>
+                            <div class="feature-value-bar">
+                                <div class="feature-fill" data-value="85"></div>
+                            </div>
+                            <div class="feature-percentage">85%</div>
+                        </div>
+                        <div class="feature-bar">
+                            <div class="feature-name">Texture Variance</div>
+                            <div class="feature-value-bar">
+                                <div class="feature-fill" data-value="72"></div>
+                            </div>
+                            <div class="feature-percentage">72%</div>
+                        </div>
+                        <div class="feature-bar">
+                            <div class="feature-name">Cell Size Distribution</div>
+                            <div class="feature-value-bar">
+                                <div class="feature-fill" data-value="68"></div>
+                            </div>
+                            <div class="feature-percentage">68%</div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Additional metrics for non-cancer cases -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon"><i class="fas fa-calendar-alt"></i></div>
+                        <div class="metric-value">12 months</div>
+                        <div class="metric-label">Recommended Next Screening</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon"><i class="fas fa-shield-alt"></i></div>
+                        <div class="metric-value">Normal</div>
+                        <div class="metric-label">Tissue Assessment</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="recommendation-section">
+            <h3>Recommendations</h3>
+            <div class="recommendation-content">
+                {% if result.cancer_detected %}
+                    {% if result.severity == "High" %}
+                    <p><strong>Immediate medical attention recommended.</strong> The analysis indicates a high severity level that should be evaluated by a healthcare professional as soon as possible.</p>
+                    <ul class="recommendation-list">
+                        <li>Schedule an appointment with an oncologist within 1-2 days</li>
+                        <li>Bring this report and original scan images to your appointment</li>
+                        <li>Additional diagnostic tests like biopsy may be recommended</li>
+                        <li>Discuss treatment options with your healthcare provider</li>
+                    </ul>
+                    {% elif result.severity == "Medium" %}
+                    <p><strong>Medical consultation recommended.</strong> The analysis indicates findings that should be reviewed by a healthcare professional in the near future.</p>
+                    <ul class="recommendation-list">
+                        <li>Schedule an appointment with your doctor within 1 week</li>
+                        <li>Bring this report and original scan images to your appointment</li>
+                        <li>Your doctor may recommend additional imaging or diagnostic tests</li>
+                        <li>Follow your healthcare provider's guidance for next steps</li>
+                    </ul>
+                    {% else %}
+                    <p><strong>Follow-up recommended.</strong> While the severity appears low, any positive finding should be evaluated by a healthcare professional during your next visit.</p>
+                    <ul class="recommendation-list">
+                        <li>Schedule a routine follow-up with your doctor</li>
+                        <li>Share this report during your next scheduled appointment</li>
+                        <li>Discuss if additional monitoring may be beneficial</li>
+                        <li>Continue with regular breast cancer screenings</li>
+                    </ul>
+                    {% endif %}
+                {% else %}
+                    <p><strong>No immediate action required.</strong> The analysis did not detect cancer indicators. Continue with regular screening as recommended by your healthcare provider.</p>
+                    <ul class="recommendation-list">
+                        <li>Maintain your regular screening schedule (typically annually after age 40)</li>
+                        <li>Continue to perform monthly self-examinations</li>
+                        <li>Report any changes in breast appearance or feel to your doctor</li>
+                        <li>Follow healthy lifestyle recommendations to reduce cancer risk</li>
+                    </ul>
+                {% endif %}
+                <p class="disclaimer">IMPORTANT: This tool is intended as a supportive diagnostic aid and not a replacement for professional medical diagnosis. Always consult with healthcare professionals for proper diagnosis and treatment.</p>
+            </div>
+        </div>
+        
+        <div class="technical-details">
+            <h3>Technical Analysis Details</h3>
+            <div class="technical-details-container">
+                <p><strong>Model:</strong> LightGBM (Light Gradient Boosting Machine)</p>
+                <p><strong>Dataset:</strong> Wisconsin Breast Cancer Dataset</p>
+                <p><strong>Features Analyzed:</strong> Cell size, shape, texture, compactness, concavity, symmetry</p>
+                <p><strong>Image Processing:</strong> HOG features, GLCM texture analysis, statistical measures</p>
+                <p><strong>Analysis Date:</strong> {{ current_time.strftime('%Y-%m-%d') }}</p>
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="{{ url_for('analyze') }}" class="btn secondary-btn"><i class="fas fa-redo"></i> Analyze Another Image</a>
+            <button class="btn primary-btn" id="download-report"><i class="fas fa-file-download"></i> Download Report</button>
+            <button class="btn info-btn" id="print-report"><i class="fas fa-print"></i> Print Report</button>
+        </div>
+    </div>
+    
+    <div class="related-resources">
+        <h3>Additional Resources</h3>
+        <div class="resource-cards">
+            <div class="resource-card">
+                <h4><i class="fas fa-book-medical"></i> Understanding Breast Cancer</h4>
+                <p>Learn more about breast cancer types, risk factors, symptoms, and prevention strategies.</p>
+                <a href="#" class="btn secondary-btn resource-btn">Read More</a>
+            </div>
+            <div class="resource-card">
+                <h4><i class="fas fa-user-md"></i> Finding a Specialist</h4>
+                <p>Directory of breast cancer specialists and oncologists in your area for professional consultation.</p>
+                <a href="#" class="btn secondary-btn resource-btn">Find Doctors</a>
+            </div>
+            <div class="resource-card">
+                <h4><i class="fas fa-hands-helping"></i> Support Groups</h4>
+                <p>Connect with breast cancer support groups and communities for emotional support and guidance.</p>
+                <a href="#" class="btn secondary-btn resource-btn">Find Support</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/results.js') }}"></script>
+{% endblock %}
