@@ -1,4 +1,4 @@
-#LightGBM-Breast-Cancer-Diagnosis-in-Image-Processing 
+# LightGBM-Breast-Cancer-Diagnosis-in-Image-Processing 
 🧠 Project Summary This is a Breast Cancer Diagnostic Web Application built with Flask and LightGBM, leveraging medical image and feature data for cancer classification. Users can upload cell or tissue images, and the app extracts features (like HOG and GLCM) and predicts if the sample is benign or malignant. It integrates:
 
 Machine learning with LightGBM
